@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from youtube_transcript_api import YouTubeTranscriptApi
 from googleapiclient.discovery import build
 
+
 class YouTubeVideoExtractor:
     def __init__(self, api_key, db_location="database/transcripts.json"):
         self.api_key = api_key
@@ -97,18 +98,16 @@ class YouTubeVideoExtractor:
 
     def save_in_database(self, channels):
         loop = asyncio.get_event_loop()
+    
         channels_data = loop.run_until_complete(self.scrape_channels_async(channels))
         df = pd.DataFrame([video for channel_videos in channels_data for video in channel_videos])
+        df.dropna(inplace=True)
 
         # Convert DataFrame to JSON string
-        df = df.to_json(orient="records")
+        json_data = df.to_json(orient="records")
 
         # Write JSON data to file
-        if os.path.exists(self.db_location):
-            with open(self.db_location, 'a') as f:
-                f.write(df)
-                f.write("\n")  # Add a newline for each JSON record if appending
-        else:
-            with open(self.db_location, 'w') as f:
-                f.write(df)
-                f.write("\n")  # Add a newline for each JSON record if creating new file
+        mode = 'a' if os.path.exists(self.db_location) else 'w'
+        with open(self.db_location, mode) as f:
+            f.write(json_data)
+            f.write("\n")  # Add a newline after writing JSON data if appending
