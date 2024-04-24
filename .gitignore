@@ -1,2 +1,3 @@
 /chroma_db
-/code/keys.py
+src/utils/keys.py
+__pycache__/
